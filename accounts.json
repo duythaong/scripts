@@ -1,0 +1,8 @@
+[
+  {
+    "address": "<YOUR_ADDRESS>",
+    "privateKey": "<YOUR_PRIVATE_KEY>",
+    "from": 0,
+    "to": 1000
+  }
+]
