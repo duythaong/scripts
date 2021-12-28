@@ -5,7 +5,7 @@ const accounts = require('./accounts.json');
 const ABI = require('./ABI/Convert.json');
 
 const contractAddress = process.env.CONVERT_ADDRESS;
-const cardTypes = [1, 1, 1, 1, 1, 1];
+const cardTypes = [1, 1, 1];
 
 // const defaultWei = 5000000000; // default 5 GWei
 const contract = new web3.eth.Contract(ABI, contractAddress);
