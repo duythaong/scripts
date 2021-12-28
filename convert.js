@@ -18,22 +18,21 @@ const run = async (account, privateKey, _tokenId, _cardTypes) => {
 
     const rawTransaction = {
       nonce: web3.utils.toHex(nonce),
-      gasPrice: web3.utils.toHex(gasPrice * 1.1),
+      gasPrice: web3.utils.toHex(gasPrice * 1.4),
       from: account,
       to: contractAddress,
       data: dataTx,
     };
     const gasLimit = await web3.eth.estimateGas(rawTransaction);
-
+    
     const gasLimitHex = web3.utils.toHex(gasLimit);
     rawTransaction.gasLimit = gasLimitHex;
-
+    
     const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, privateKey);
-
     return web3.eth
       .sendSignedTransaction(signedTransaction.rawTransaction)
       .on('receipt', ({ transactionHash }) => {
-        console.log(orderId, `${process.env.EXPLORER}/tx/${transactionHash}`);
+        console.log(`${process.env.EXPLORER}/tx/${transactionHash}`);
       })
       .catch((err) => {
         console.log('error1', err);
@@ -43,18 +42,19 @@ const run = async (account, privateKey, _tokenId, _cardTypes) => {
   }
 };
 
-const convertPackage = async ({ from, to, address, privateKey }) => {
+const convertPackage = async () => {
+  const { address, privateKey, from, to } = accounts[0];
   for (let i = from; i < to; i++) {
-    await run(address, privateKey, i, cardTypes);
+    await run(address, privateKey, i, [1, 1, 1]);
   }
 };
 
 
-const script = () => {
+const script = async () => {
   for (let i = 0; i < accounts.length; i++) {
     const { address, privateKey, from, to } = accounts[i];
-    convertPackage({ from, to, address, privateKey });
+    await convertPackage({ from, to, address, privateKey });
   }
 };
 
-script();
+convertPackage();
