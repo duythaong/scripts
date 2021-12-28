@@ -45,7 +45,7 @@ const run = async (account, privateKey, _tokenId, _cardTypes) => {
 
 const convertPackage = async ({ from, to, address, privateKey }) => {
   for (let i = from; i < to; i++) {
-    await run(address, privateKey, _tokenId, cardTypes);
+    await run(address, privateKey, i, cardTypes);
   }
 };
 
