@@ -53,3 +53,5 @@ node_module
 bot.json
 package-lock.json
 
+accounts.json
+

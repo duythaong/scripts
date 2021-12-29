@@ -1,6 +1,7 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const moment = require('moment');
+const { sleep, generateCode, minutes } = require('./utils');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC));
 const accounts = require('./accounts.json');
 const ABI = require('./ABI/Market.json');
@@ -46,20 +47,12 @@ const run = async (account, privateKey, orderId, game, tokenIds, price, fiat) =>
   }
 };
 
-const generateCode = (len = 16) => {
-  let text = '';
-  let possible = '0123456789';
-  for (let i = 0; i < len; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
-
 const sellNFTs = async ({ from, to, address, privateKey }) => {
   for (let i = from; i < to; i++) {
     const orderId = moment(new Date()).format('YYMMDD') + generateCode(8);
     await run(address, privateKey, orderId, gameAddress, [i], sellingPrice, tokens);
   }
+  console.log(`${address} - completed!`)
 };
 
 
@@ -68,6 +61,7 @@ const script = () => {
     const { address, privateKey, from, to } = accounts[i];
     sellNFTs({ from, to, address, privateKey });
   }
+  await sleep(minutes(60)); // 1 hours
 };
 
 script();

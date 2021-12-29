@@ -1,7 +1,6 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC));
-const { sleep, minutes } = require('./utils');
 const accounts = require('./accounts.json');
 const ABI = require('./ABI/Convert.json');
 
@@ -43,20 +42,19 @@ const run = async (account, privateKey, _tokenId, _cardTypes) => {
   }
 };
 
-const convertPackage = async ({ address, privateKey, from, to }) => {
+const convertPackage = async () => {
+  const { address, privateKey, from, to } = accounts[0];
   for (let i = from; i < to; i++) {
     await run(address, privateKey, i, [1, 1, 1]);
   }
-  console.log(`${address} - completed!`)
 };
 
 
 const script = async () => {
   for (let i = 0; i < accounts.length; i++) {
     const { address, privateKey, from, to } = accounts[i];
-    convertPackage({ from, to, address, privateKey });
+    await convertPackage({ from, to, address, privateKey });
   }
-  await sleep(minutes(60)); // 1 hours
 };
 
-script();
+convertPackage();
