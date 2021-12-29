@@ -1,4 +1,4 @@
-export const generateCode = (len = 16) => {
+const generateCode = (len = 16) => {
   let text = '';
   let possible = '0123456789';
   for (let i = 0; i < len; i++) {
@@ -7,8 +7,10 @@ export const generateCode = (len = 16) => {
   return text;
 }
 
-export const sleep = (ms) => {
+const sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export const minutes = (num) => num * 60 * 1000
+const minutes = (num) => num * 60 * 1000
+
+module.exports = { generateCode, sleep, minutes }

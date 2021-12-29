@@ -7,10 +7,11 @@ const nftABI = require('./ABI/ERC721.json')
 
 const tokenAddress = '0xdCe0cF324155F6331bA1Bb1957b47d80d107Eb5D';
 const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-const spender = '0xfd404Faadb1FE9A1D08c74F2711D92FaBbDC7433';
+const spender = '0x25fB7400d4D0affeD4991005eBA703d31727829D';
 
-const nftAddress = '';
+const nftAddress = '0xfd404Faadb1FE9A1D08c74F2711D92FaBbDC7433';
 const nftContract = new web3.eth.Contract(nftABI, nftAddress);
+
 const MaxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
 const defaultWei = 5000000000; // default 5 GWei
@@ -24,7 +25,7 @@ const approveToken = async (account, privateKey) => {
     const rawTransaction = {
       nonce: web3.utils.toHex(nonce),
       from: account,
-      to: tokenAddress,
+      to: tokenContract,
       data: dataTx,
       gasPrice: web3.utils.toHex(gasPrice),
     };
@@ -56,7 +57,7 @@ const approveNFT = async (account, privateKey) => {
     const rawTransaction = {
       nonce: web3.utils.toHex(nonce),
       from: account,
-      to: tokenAddress,
+      to: nftContract,
       data: dataTx,
       gasPrice: web3.utils.toHex(gasPrice),
     };
@@ -84,8 +85,8 @@ const script = async () => {
   const length = accounts.length;
   for (let i = 0; i < length; i++) {
     const { address, privateKey } = accounts[i];
-    await approveToken(address, privateKey);
-    // await approveNFT(address, privateKey);
+    // await approveToken(address, privateKey);
+    await approveNFT(address, privateKey);
   }
 };
 

@@ -19,7 +19,7 @@ const run = async (account, privateKey, _tokenId, _cardTypes) => {
 
     const rawTransaction = {
       nonce: web3.utils.toHex(nonce),
-      gasPrice: web3.utils.toHex(gasPrice * 1.4),
+      gasPrice: web3.utils.toHex(gasPrice * 1.1),
       from: account,
       to: contractAddress,
       data: dataTx,
