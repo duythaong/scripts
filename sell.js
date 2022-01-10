@@ -56,7 +56,7 @@ const sellNFTs = async ({ from, to, address, privateKey }) => {
 };
 
 
-const script = () => {
+const script = async () => {
   for (let i = 0; i < accounts.length; i++) {
     const { address, privateKey, from, to } = accounts[i];
     sellNFTs({ from, to, address, privateKey });
