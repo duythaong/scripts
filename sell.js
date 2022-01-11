@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fs = require('fs');
 const Web3 = require('web3');
 const moment = require('moment');
 const { sleep, generateCode, minutes } = require('./utils');
@@ -48,10 +49,13 @@ const run = async (account, privateKey, orderId, game, tokenIds, price, fiat) =>
 };
 
 const sellNFTs = async ({ from, to, address, privateKey }) => {
+  const stream = fs.createWriteStream('orders.txt', { flags:'a' });
   for (let i = from; i < to; i++) {
     const orderId = moment(new Date()).format('YYMMDD') + generateCode(8);
+    stream.write(`${orderId}\n`);
     await run(address, privateKey, orderId, gameAddress, [i], sellingPrice, tokens);
   }
+  stream.end();
   console.log(`${address} - completed!`)
 };
 
