@@ -1,18 +1,18 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
-const accounts = require('./accounts1.json');
-const ABI = require('./ABI/MultiTransfer.json');
+const accounts = require('./accounts.json');
 
-const contractAddress = process.env.MULTI_TRANSFER_MUMBAI;
-const contract = new web3.eth.Contract(ABI, contractAddress);
+const stakeABI = require('./ABI/Stake.json');
+const stakingAddress = process.env.MULTI_TRANSFER_MUMBAI;
+const stakingContract = new web3.eth.Contract(stakeABI, stakingAddress);
 
-const token = process.env.TOKEN;
-const amountToken = 1000;
-const ownerAddress = '0x922Da0C59EaF48926CFeE218A461bC510EE7dBb8';
-const ownerPrivateKey = '0x7e25712b8472d66bfd4c3550467ab68889268be1357a21077efefd548eb1d686';
+const tokenABI = require('./ABI/ERC20.json');
+const tokenAddress = '0xd112f642d61a30a28c659ca95c82347f553cfae8'
+const MaxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
 
-const baseTx = async (account, privateKey, dataTx, value) => {
+const baseTx = async (contract, account, privateKey, dataTx, value) => {
   try {
     const nonce = await web3.eth.getTransactionCount(account);
     const gasPrice = await web3.eth.getGasPrice();
@@ -20,7 +20,7 @@ const baseTx = async (account, privateKey, dataTx, value) => {
     const rawTransaction = {
       nonce: web3.utils.toHex(nonce),
       from: account,
-      to: contractAddress,
+      to: contract,
       data: dataTx,
       gasPrice: web3.utils.toHex(gasPrice),
     };
@@ -48,56 +48,43 @@ const baseTx = async (account, privateKey, dataTx, value) => {
   }
 }
 
-const sendTokens = async () => {
-  const amountTokenInWei = web3.utils.toWei(amountToken.toString(), 'ether')
+const approves = async () => {
   const length = accounts.length;
-  let recipients = [];
+  let ps = [];
   for (let i = 0; i < length; i++) {
-    const { address } = accounts[i];
-    recipients.push(address);
-    if (recipients.length % 50 === 0) {
-      try {
-        const dataTx = contract.methods.distributeTokenSingleValue(token, recipients, amountTokenInWei).encodeABI();
-        await baseTx(ownerAddress, ownerPrivateKey, dataTx, 0);
-        recipients = [];
-      } catch (error) {
-        console.log('error')
-      }
+    const { address, privateKey } = accounts[i];
+    try {
+      const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
+      ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
+      if (i % 50 === 0) {
+        await Promise.all(ps);
+      };
+      ps = [];
+    } catch (error) {
+      console.log('error')
     }
   }
 };
 
-const send = async () => {
-  const amount = 0.01;
+const stakes = async () => {
+  const amount = 1000;
   const amountInWei = web3.utils.toWei(amount.toString(), 'ether')
   const length = accounts.length;
-  let recipients = [];
+  let ps = [];
   for (let i = 0; i < length; i++) {
-    const { address } = accounts[i];
-    recipients.push(address);
-    if (recipients.length % 50 === 0) {
-      try {
-        const dataTx = contract.methods.distributeSingleValue(recipients, amountInWei).encodeABI();
-        console.log('dataTx', dataTx)
-        await baseTx(ownerAddress, ownerPrivateKey, dataTx, amount * recipients.length);
-        recipients = []; 
-      } catch (error) {
-        console.log(error)
-      }
+    const { address, privateKey } = accounts[i];
+    try {
+      const dataTx = stakingContract.methods.stake(amountInWei).encodeABI();
+      ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
+      if (i % 50 === 0) {
+        await Promise.all(ps);
+      };
+      ps = []; 
+    } catch (error) {
+      console.log(error)
     }
   }
 };
 
-// sendTokens();
-send();
-
-
-// const distributeTokens = (account, privateKey, token, recipients, value) => {
-//   const dataTx = contract.methods.distributeTokenSingleValue(token, recipients, value).encodeABI();
-//   return Promise.resolve(baseTx(account, privateKey, dataTx, 0))
-// };
-
-// const distribute = (account, privateKey, recipients, value, payableAmout) => {
-//   const dataTx = contract.methods.distributeSingleValue(recipients, value).encodeABI();
-//   return baseTx(account, privateKey, dataTx, payableAmout)
-// };
+approves();
+stakes();
