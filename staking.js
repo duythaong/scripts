@@ -4,11 +4,12 @@ const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
 const accounts = require('./accounts.json');
 
 const stakeABI = require('./ABI/Stake.json');
-const stakingAddress = process.env.MULTI_TRANSFER_MUMBAI;
+const stakingAddress = '0x93b0264535f97e5e90653f3df186f0bb97d003db';
 const stakingContract = new web3.eth.Contract(stakeABI, stakingAddress);
+const stakingAmount = 1000;
 
 const tokenABI = require('./ABI/ERC20.json');
-const tokenAddress = '0xd112f642d61a30a28c659ca95c82347f553cfae8'
+const tokenAddress = '0xb7AfB6774f001c870F9fE6eA368F61e399b75c90'
 const MaxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
 
@@ -56,7 +57,7 @@ const approves = async () => {
     try {
       const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
       ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
-      if (i % 50 === 0) {
+      if ((i + 1) % 50 === 0) {
         await Promise.all(ps);
       };
       ps = [];
@@ -67,7 +68,7 @@ const approves = async () => {
 };
 
 const stakes = async () => {
-  const amount = 1000;
+  const amount = stakingAmount;
   const amountInWei = web3.utils.toWei(amount.toString(), 'ether')
   const length = accounts.length;
   let ps = [];
@@ -76,7 +77,28 @@ const stakes = async () => {
     try {
       const dataTx = stakingContract.methods.stake(amountInWei).encodeABI();
       ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
-      if (i % 50 === 0) {
+      if ((i + 1) % 50 === 0) {
+        await Promise.all(ps);
+      };
+      ps = []; 
+    } catch (error) {
+      console.log(error)
+    }
+  }
+};
+
+
+const unStakes = async () => {
+  const amount = stakingAmount;
+  const amountInWei = web3.utils.toWei(amount.toString(), 'ether')
+  const length = accounts.length;
+  let ps = [];
+  for (let i = 0; i < length; i++) {
+    const { address, privateKey } = accounts[i];
+    try {
+      const dataTx = stakingContract.methods.withdraw(amountInWei).encodeABI();
+      ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
+      if ((i + 1) % 50 === 0) {
         await Promise.all(ps);
       };
       ps = []; 
@@ -88,3 +110,4 @@ const stakes = async () => {
 
 approves();
 stakes();
+unStakes();

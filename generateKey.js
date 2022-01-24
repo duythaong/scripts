@@ -14,13 +14,14 @@ const generateWallet = async (mnemonic, index) => {
   return { currentReceiveAddress, privatekey, mnemonic }
 }
 
-const generateAccounts = async (mnemonic, initIndex) => {
-  const stream = fs.createWriteStream('accounts2.json', { flags:'a' });
+const generateAccounts = async (mnemonic, initIndex, endIndex) => {
+  const stream = fs.createWriteStream('accounts3.json', { flags:'a' });
   const accounts = [];
   const init = initIndex ? initIndex : 0;
-  for (let i = init; i < init + 100; i++) {
+  const end = endIndex ? endIndex : init + 100;
+  for (let i = init; i < end; i++) {
     const { currentReceiveAddress, privatekey } = await generateWallet(mnemonic, i);
-    accounts.push({address: currentReceiveAddress, privatekey: `0x${privatekey}`});
+    accounts.push({address: currentReceiveAddress, privateKey: `0x${privatekey}`});
   }
   stream.write(JSON.stringify(accounts));
   stream.end();
@@ -32,4 +33,4 @@ const generateAccounts = async (mnemonic, initIndex) => {
 //   console.log(res)
 // };
 // generate()
-generateAccounts('lady bar oak bone garden asset service suspect cloth copy feature cereal', 300);
+generateAccounts('lady bar oak bone garden asset service suspect cloth copy feature cereal', 0, 10000);

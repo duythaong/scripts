@@ -8,7 +8,7 @@ const contractAddress = process.env.MULTI_TRANSFER_MUMBAI;
 const contract = new web3.eth.Contract(ABI, contractAddress);
 
 const token = process.env.TOKEN;
-const amountToken = 1000;
+const amountToken = 10000;
 const ownerAddress = '0x922Da0C59EaF48926CFeE218A461bC510EE7dBb8';
 const ownerPrivateKey = '0x7e25712b8472d66bfd4c3550467ab68889268be1357a21077efefd548eb1d686';
 
@@ -88,8 +88,8 @@ const send = async () => {
   }
 };
 
-// sendTokens();
-send();
+sendTokens();
+// send();
 
 
 // const distributeTokens = (account, privateKey, token, recipients, value) => {
