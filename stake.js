@@ -1,10 +1,11 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
-const accounts = require('./accounts.json');
-
+// const accounts = require('./accounts.json');
+const csv = require('csvtojson');
+const path = require('path');
 const stakeABI = require('./ABI/Stake.json');
-const stakingAddress = '0x93b0264535f97e5e90653f3df186f0bb97d003db';
+const stakingAddress = '0xeE45aedD2228425757B22f2C5E08f93c0B12afC1';
 const stakingContract = new web3.eth.Contract(stakeABI, stakingAddress);
 const stakingAmount = 1000;
 
@@ -131,3 +132,5 @@ const approves2 = async () => {
     }
   }
 };
+
+approves2();
