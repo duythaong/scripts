@@ -108,6 +108,26 @@ const unStakes = async () => {
   }
 };
 
-approves();
-stakes();
-unStakes();
+// approves();
+// stakes();
+// unStakes();
+
+const approves2 = async () => {
+  const jsonArray = await csv().fromFile(path.join(__dirname, "account.csv"));
+  let ps = [];
+  const length = jsonArray.length;
+  for (let i = 32602; i < length; i++) {
+    const { address, privateKey } = jsonArray[i];
+    try {
+      const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
+      ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
+      if ((i + 1) % 50 === 0) {
+        console.log(i, ps.length);
+        await Promise.all(ps);
+        ps = [];
+      };
+    } catch (error) {
+      console.log('error')
+    }
+  }
+};
