@@ -1,14 +1,15 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
-const accounts = require('./accounts.json');
-
-const stakeABI = require('./ABI/Stake.json');
-const stakingAddress = '0x93b0264535f97e5e90653f3df186f0bb97d003db';
+// const accounts = require('./accounts.json');
+const csv = require('csvtojson');
+const path = require('path');
+const stakeABI = require('../../ABI/Stake.json');
+const stakingAddress = '0xeE45aedD2228425757B22f2C5E08f93c0B12afC1';
 const stakingContract = new web3.eth.Contract(stakeABI, stakingAddress);
 const stakingAmount = 1000;
 
-const tokenABI = require('./ABI/ERC20.json');
+const tokenABI = require('../../ABI/ERC20.json');
 const tokenAddress = '0xb7AfB6774f001c870F9fE6eA368F61e399b75c90'
 const MaxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
@@ -108,12 +109,28 @@ const unStakes = async () => {
   }
 };
 
-const earn = async (address) => {
-  const e = await stakingContract.methods.rewardPaid(address).call();
-  console.log(e);
-}
-
 // approves();
 // stakes();
 // unStakes();
-earn('0x65c2f3accec21fa5bd5869572273da7b7296adea');
+
+const approves2 = async () => {
+  const jsonArray = await csv().fromFile(path.join(__dirname, "account.csv"));
+  let ps = [];
+  const length = jsonArray.length;
+  for (let i = 32602; i < length; i++) {
+    const { address, privateKey } = jsonArray[i];
+    try {
+      const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
+      ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
+      if ((i + 1) % 50 === 0) {
+        console.log(i, ps.length);
+        await Promise.all(ps);
+        ps = [];
+      };
+    } catch (error) {
+      console.log('error')
+    }
+  }
+};
+
+approves2();

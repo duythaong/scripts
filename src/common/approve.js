@@ -1,9 +1,9 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC));
-const accounts = require('./accounts.json');
-const tokenABI = require('./ABI/ERC20.json');
-const nftABI = require('./ABI/ERC721.json')
+const accounts = require('../../accounts.json');
+const tokenABI = require('../../ABI/ERC20.json');
+const nftABI = require('../../ABI/ERC721.json')
 
 const tokenAddress = '0xdCe0cF324155F6331bA1Bb1957b47d80d107Eb5D';
 const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);

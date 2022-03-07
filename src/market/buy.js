@@ -1,8 +1,8 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC));
-const accounts = require('./accounts.json');
-const ABI = require('./ABI/Convert.json');
+const accounts = require('../../accounts.json');
+const ABI = require('../../ABI/Convert.json');
 
 const contractAddress = process.env.CONVERT_ADDRESS;
 const cardTypes = [1, 1, 1];
