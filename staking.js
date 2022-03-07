@@ -108,6 +108,12 @@ const unStakes = async () => {
   }
 };
 
-approves();
-stakes();
-unStakes();
+const earn = async (address) => {
+  const e = await stakingContract.methods.rewardPaid(address).call();
+  console.log(e);
+}
+
+// approves();
+// stakes();
+// unStakes();
+earn('0x65c2f3accec21fa5bd5869572273da7b7296adea');

@@ -33,4 +33,4 @@ const generateAccounts = async (mnemonic, initIndex, endIndex) => {
 //   console.log(res)
 // };
 // generate()
-generateAccounts('lady bar oak bone garden asset service suspect cloth copy feature cereal', 0, 10000);
+generateAccounts('lady bar oak bone garden asset service suspect cloth copy feature cereal', 0, 100000);
