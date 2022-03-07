@@ -1,5 +1,5 @@
 const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_BSC));
 
 const baseTx = async (account, privateKey, dataTx, value) => {
   try {
@@ -27,7 +27,7 @@ const baseTx = async (account, privateKey, dataTx, value) => {
     return web3.eth
       .sendSignedTransaction(signedTransaction.rawTransaction)
       .on('receipt', ({ transactionHash }) => {
-        console.log(`${process.env.EXPLORER_MUMBAI}/tx/${transactionHash}`);
+        console.log(`${process.env.EXPLORER_BSC}/tx/${transactionHash}`);
       })
       .catch((err) => {
         console.log('error1', err);
