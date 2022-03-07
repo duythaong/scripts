@@ -47,7 +47,6 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-.env
 node_module
 .idea
 bot.json
