@@ -1,8 +1,8 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
-const accounts = require('../../accounts1.json');
-const ABI = require('../../ABI/MultiTransfer.json');
+const accounts = require('../../accounts.json');
+const ABI = require('../ABI/MultiTransfer.json');
 
 const contractAddress = process.env.MULTI_TRANSFER_MUMBAI;
 const contract = new web3.eth.Contract(ABI, contractAddress);

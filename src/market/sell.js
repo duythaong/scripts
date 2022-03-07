@@ -5,7 +5,7 @@ const moment = require('moment');
 const { sleep, generateCode, minutes } = require('../../utils');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC));
 const accounts = require('../../accounts.json');
-const ABI = require('../../ABI/Market.json');
+const ABI = require('../ABI/Market.json');
 
 const contractAddress = process.env.MARKET_ADDRESS;
 const gameAddress = process.env.GAME_ADDRESS;
