@@ -1,18 +1,15 @@
 require('dotenv').config();
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_BSC));
-const path = require('path');
-const { sleep } = require('../utils');
 const stakeABI = require('../ABI/StakeW.json');
 const stakingAddress = '0xF403C43300Cd722AEf5f2E305F655AD7753Db935';
 const stakingContract = new web3.eth.Contract(stakeABI, stakingAddress);
-const stakingAmount = 10;
+const stakingAmount = 1000;
 
-const accounts = require('../../accounts.json');
+const accounts = require('../../accounts1.json');
 const tokenABI = require('../ABI/ERC20.json');
-const tokenAddress = '0x013345B20fe7Cf68184005464FBF204D9aB88227'
 const MaxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
+const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4", "0x979Db64D8cD5Fed9f1B62558547316aFEdcf4dBA", "0x013345B20fe7Cf68184005464FBF204D9aB88227", "0xd2926D1f868Ba1E81325f0206A4449Da3fD8FB62", "0xf6f3F4f5d68Ddb61135fbbde56f404Ebd4b984Ee"];
 
 const baseTx = async (contract, account, privateKey, dataTx, value) => {
   try {
@@ -51,17 +48,20 @@ const baseTx = async (contract, account, privateKey, dataTx, value) => {
 }
 
 const approves = async () => {
-  const length = accounts.length;
+  const length = 50;
   let ps = [];
-  for (let i = 0; i < length; i++) {
-    const { address, privateKey } = accounts[i];
+  for (let i = 0; i < tokens.length; i++) {
     try {
-      const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
-      ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
-      if ((i + 1) % 50 === 0) {
-        await Promise.all(ps);
-      };
-      ps = [];
+      for (let j = 0; j < length; j++) {
+        const { address, privateKey } = accounts[j];
+        const tokenContract = new web3.eth.Contract(tokenABI, tokens[i]);
+        const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
+        ps.push(baseTx(tokens[i], address, privateKey, dataTx, 0));
+        if ((j + 1) % 50 === 0) {
+          await Promise.all(ps);
+          ps = [];
+        };
+      }
     } catch (error) {
       console.log('error')
     }
@@ -69,82 +69,47 @@ const approves = async () => {
 };
 
 const stakes = async () => {
-  const amount = stakingAmount;
-  const amountInWei = web3.utils.toWei(amount.toString(), 'ether')
-  const length = accounts.length;
+  const amountInWei = web3.utils.toWei(stakingAmount.toString(), 'ether')
+  const length = 50;
   let ps = [];
-  for (let i = 0; i < length; i++) {
-    const { address, privateKey } = accounts[i];
+  for (let i = 2; i < tokens.length; i++) {
     try {
-      const dataTx = stakingContract.methods.stake(tokenAddress, amountInWei).encodeABI();
-      ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
-      if ((i + 1) % 50 === 0) {
-        await Promise.all(ps);
-      };
-      ps = []; 
+      for (let j = 0; j < length; j++) {
+        const { address, privateKey } = accounts[j];
+        const dataTx = stakingContract.methods.stake(tokens[i], amountInWei).encodeABI();
+        ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
+        if ((j + 1) % 50 === 0) {
+          await Promise.all(ps);
+          ps = [];
+        };
+      }
     } catch (error) {
-      console.log(error)
-    }
-  }
-};
-
-const stakes2 = async () => {
-  const amount = stakingAmount;
-  const amountInWei = web3.utils.toWei(amount.toString(), 'ether')
-  const length = 100;
-  for (let i = 0; i < length; i++) {
-    const { address, privateKey } = accounts[0];
-    try {
-      const dataTx = stakingContract.methods.stake(tokenAddress, amountInWei).encodeABI();
-      await baseTx(stakingAddress, address, privateKey, dataTx, 0);
-    } catch (error) {
-      console.log(error)
+      console.log('error')
     }
   }
 };
 
 const unStakes = async () => {
-  const amount = stakingAmount;
-  const amountInWei = web3.utils.toWei(amount.toString(), 'ether')
-  const length = accounts.length;
+  const amountInWei = web3.utils.toWei(stakingAmount.toString(), 'ether')
+  const length = 50;
   let ps = [];
-  for (let i = 0; i < length; i++) {
-    const { address, privateKey } = accounts[i];
+  for (let i = 0; i < tokens.length; i++) {
     try {
-      const dataTx = stakingContract.methods.unstake(tokenAddress, amountInWei).encodeABI();
-      ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
-      if ((i + 1) % 50 === 0) {
-        await Promise.all(ps);
-      };
-      ps = []; 
+      for (let j = 0; j < length; j++) {
+        const { address, privateKey } = accounts[j];
+        const dataTx = stakingContract.methods.unstake(tokens[i], amountInWei).encodeABI();
+        ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
+        if ((j + 1) % 50 === 0) {
+          await Promise.all(ps);
+          ps = [];
+        };
+      }
     } catch (error) {
-      console.log(error)
+      console.log('error')
     }
   }
 };
 
 // approves();
-stakes2();
+stakes()
 // unStakes();
-
-// const approves2 = async () => {
-//   const jsonArray = await csv().fromFile(path.join(__dirname, "account.csv"));
-//   let ps = [];
-//   const length = jsonArray.length;
-//   for (let i = 32602; i < length; i++) {
-//     const { address, privateKey } = jsonArray[i];
-//     try {
-//       const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
-//       ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
-//       if ((i + 1) % 50 === 0) {
-//         console.log(i, ps.length);
-//         await Promise.all(ps);
-//         ps = [];
-//       };
-//     } catch (error) {
-//       console.log('error')
-//     }
-//   }
-// };
-
-// approves2();

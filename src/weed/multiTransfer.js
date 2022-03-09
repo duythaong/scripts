@@ -1,10 +1,10 @@
 require("dotenv").config();
 const Web3 = require("web3");
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_BSC));
 const accounts = require("../../accounts1.json");
 const ABI = require("../ABI/MultiTransfer.json");
 
-const contractAddress = process.env.MULTI_TRANSFER_MUMBAI;
+const contractAddress = '0x5d25718626097aC25Aef0e90736057FDd45e355D';
 const contract = new web3.eth.Contract(ABI, contractAddress);
 
 const amountToken = 10000;
@@ -38,7 +38,7 @@ const baseTx = async (account, privateKey, dataTx, value) => {
     return web3.eth
       .sendSignedTransaction(signedTransaction.rawTransaction)
       .on("receipt", ({ transactionHash }) => {
-        console.log(`${process.env.EXPLORER_MUMBAI}/tx/${transactionHash}`);
+        console.log(`${process.env.EXPLORER_BSC}/tx/${transactionHash}`);
       })
       .catch((err) => {
         console.log("error1", err);
@@ -50,45 +50,26 @@ const baseTx = async (account, privateKey, dataTx, value) => {
 
 const sends = async () => {
   const amount = 0.01;
-  const amountInWei = web3.utils.toWei(amountToken.toString(), "ether");
-  const length = accounts.length;
+  const amountInWei = web3.utils.toWei(amount.toString(), "ether");
+  const amountTokenInWei = web3.utils.toWei(amountToken.toString(), "ether");
+  // const length = accounts.length;
+  const length = 300;
   let recipients = [];
 
   for (let i = 0; i < length; i++) {
     const { address } = accounts[i];
     recipients.push(address);
-    if (recipients.length % 100 === 0) {
+    // if (recipients.length % 50 === 0) {
       try {
-        const dataTx = contract.methods.distributeSingle(recipients, amount, tokens, amountInWei).encodeABI();
+        const dataTx = contract.methods.distributeSingle(recipients, amountInWei, tokens, amountTokenInWei).encodeABI();
         await baseTx(ownerAddress, ownerPrivateKey, dataTx, amount * recipients.length);
         recipients = [];
       } catch (error) {
-        console.log("error");
+        console.log(error);
       }
     }
-  }
+  // }
 };
 
 sends();
 
-
-// const send = async () => {
-//   const amount = 0.01;
-//   const amountInWei = web3.utils.toWei(amount.toString(), "ether");
-//   const length = accounts.length;
-//   let recipients = [];
-//   for (let i = 0; i < length; i++) {
-//     const { address } = accounts[i];
-//     recipients.push(address);
-//     if (recipients.length % 50 === 0) {
-//       try {
-//         const dataTx = contract.methods.distributeSingleValue(recipients, amountInWei).encodeABI();
-//         console.log("dataTx", dataTx);
-//         await baseTx(ownerAddress, ownerPrivateKey, dataTx, amount * recipients.length);
-//         recipients = [];
-//       } catch (error) {
-//         console.log(error);
-//       }
-//     }
-//   }
-// };
