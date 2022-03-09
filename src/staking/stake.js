@@ -1,16 +1,16 @@
 require('dotenv').config();
 const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_MUMBAI));
-// const accounts = require('./accounts.json');
-const csv = require('csvtojson');
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_BSC));
 const path = require('path');
-const stakeABI = require('../ABI/Stake.json');
-const stakingAddress = '0xeE45aedD2228425757B22f2C5E08f93c0B12afC1';
+const { sleep } = require('../utils');
+const stakeABI = require('../ABI/StakeW.json');
+const stakingAddress = '0xF403C43300Cd722AEf5f2E305F655AD7753Db935';
 const stakingContract = new web3.eth.Contract(stakeABI, stakingAddress);
-const stakingAmount = 1000;
+const stakingAmount = 10;
 
-const tokenABI = require('../../ABI/ERC20.json');
-const tokenAddress = '0xb7AfB6774f001c870F9fE6eA368F61e399b75c90'
+const accounts = require('../../accounts.json');
+const tokenABI = require('../ABI/ERC20.json');
+const tokenAddress = '0x013345B20fe7Cf68184005464FBF204D9aB88227'
 const MaxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
 
@@ -32,7 +32,7 @@ const baseTx = async (contract, account, privateKey, dataTx, value) => {
     }
 
     const gasLimit = await web3.eth.estimateGas(rawTransaction);
-    const gasLimitHex = web3.utils.toHex(gasLimit);
+    const gasLimitHex = web3.utils.toHex(gasLimit * 2);
     rawTransaction.gasLimit = gasLimitHex;
     
     const signedTransaction= await web3.eth.accounts.signTransaction(rawTransaction, privateKey);
@@ -40,7 +40,7 @@ const baseTx = async (contract, account, privateKey, dataTx, value) => {
     return web3.eth
       .sendSignedTransaction(signedTransaction.rawTransaction)
       .on('receipt', ({ transactionHash }) => {
-        console.log(`${process.env.EXPLORER_MUMBAI}/tx/${transactionHash}`);
+        console.log(`${process.env.EXPLORER_BSC}/tx/${transactionHash}`);
       })
       .catch((err) => {
         console.log('error1', err);
@@ -76,7 +76,7 @@ const stakes = async () => {
   for (let i = 0; i < length; i++) {
     const { address, privateKey } = accounts[i];
     try {
-      const dataTx = stakingContract.methods.stake(amountInWei).encodeABI();
+      const dataTx = stakingContract.methods.stake(tokenAddress, amountInWei).encodeABI();
       ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
       if ((i + 1) % 50 === 0) {
         await Promise.all(ps);
@@ -88,6 +88,20 @@ const stakes = async () => {
   }
 };
 
+const stakes2 = async () => {
+  const amount = stakingAmount;
+  const amountInWei = web3.utils.toWei(amount.toString(), 'ether')
+  const length = 100;
+  for (let i = 0; i < length; i++) {
+    const { address, privateKey } = accounts[0];
+    try {
+      const dataTx = stakingContract.methods.stake(tokenAddress, amountInWei).encodeABI();
+      await baseTx(stakingAddress, address, privateKey, dataTx, 0);
+    } catch (error) {
+      console.log(error)
+    }
+  }
+};
 
 const unStakes = async () => {
   const amount = stakingAmount;
@@ -97,7 +111,7 @@ const unStakes = async () => {
   for (let i = 0; i < length; i++) {
     const { address, privateKey } = accounts[i];
     try {
-      const dataTx = stakingContract.methods.withdraw(amountInWei).encodeABI();
+      const dataTx = stakingContract.methods.unstake(tokenAddress, amountInWei).encodeABI();
       ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
       if ((i + 1) % 50 === 0) {
         await Promise.all(ps);
@@ -110,27 +124,27 @@ const unStakes = async () => {
 };
 
 // approves();
-// stakes();
+stakes2();
 // unStakes();
 
-const approves2 = async () => {
-  const jsonArray = await csv().fromFile(path.join(__dirname, "account.csv"));
-  let ps = [];
-  const length = jsonArray.length;
-  for (let i = 32602; i < length; i++) {
-    const { address, privateKey } = jsonArray[i];
-    try {
-      const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
-      ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
-      if ((i + 1) % 50 === 0) {
-        console.log(i, ps.length);
-        await Promise.all(ps);
-        ps = [];
-      };
-    } catch (error) {
-      console.log('error')
-    }
-  }
-};
+// const approves2 = async () => {
+//   const jsonArray = await csv().fromFile(path.join(__dirname, "account.csv"));
+//   let ps = [];
+//   const length = jsonArray.length;
+//   for (let i = 32602; i < length; i++) {
+//     const { address, privateKey } = jsonArray[i];
+//     try {
+//       const dataTx = tokenContract.methods.approve(stakingAddress, MaxUint256).encodeABI();
+//       ps.push(baseTx(tokenAddress, address, privateKey, dataTx, 0));
+//       if ((i + 1) % 50 === 0) {
+//         console.log(i, ps.length);
+//         await Promise.all(ps);
+//         ps = [];
+//       };
+//     } catch (error) {
+//       console.log('error')
+//     }
+//   }
+// };
 
-approves2();
+// approves2();
