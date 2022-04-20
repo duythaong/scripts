@@ -4,7 +4,7 @@ const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_BSC));
 
 const lotteryABI = require('../ABI/Lottery.json');
-const lotteryAddress = '0xa7Bb22FB8E5fd09e4b015A34611F38F0754A494F';
+const lotteryAddress = '0x4Aee3e0cd5f62fc2a23283fFB0874fCEe26c6a3e';
 const lotteryContract = new web3.eth.Contract(lotteryABI, lotteryAddress);
 
 const tokenABI = require('../ABI/ERC20.json');
@@ -14,7 +14,8 @@ const IPFS_UPLOAD_URL = 'https://dev-ipfs.w3w.app/api/v0/add'
 const apiUrl = 'https://dev-cig-api-v2.w3w.app';
 const messageHash = 'Crypto Ishtar';
 const accounts = require('../../accounts1.json');
-const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4", "0x979Db64D8cD5Fed9f1B62558547316aFEdcf4dBA", "0x013345B20fe7Cf68184005464FBF204D9aB88227", "0xd2926D1f868Ba1E81325f0206A4449Da3fD8FB62", "0xf6f3F4f5d68Ddb61135fbbde56f404Ebd4b984Ee"];
+// const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4", "0x979Db64D8cD5Fed9f1B62558547316aFEdcf4dBA", "0x013345B20fe7Cf68184005464FBF204D9aB88227", "0xd2926D1f868Ba1E81325f0206A4449Da3fD8FB62", "0xf6f3F4f5d68Ddb61135fbbde56f404Ebd4b984Ee"];
+const tokens = ['0x10297304eEA4223E870069325A2EEA7ca4Cd58b4'];
 
 const uploadFile = async (file) => {
 	try {
