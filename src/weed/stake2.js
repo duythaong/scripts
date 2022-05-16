@@ -69,12 +69,14 @@ const approves = async () => {
 };
 
 const stakes = async () => {
-  const amountInWei = web3.utils.toWei(stakingAmount.toString(), 'ether')
   const from = 0;
-  const length = 50; // how many accounts we will run in once
+  const length = 1000; // how many accounts we will run in once
   try {
     for (let i = from; i < length; i++) {
       const { address, privateKey } = accounts[i];
+      const multipierAmount = stakingAmount * (1 + (i + 1) % 100);
+      const amountInWei = web3.utils.toWei(multipierAmount.toString(), 'ether')
+
       const dataTx = stakingContract.methods.stake(stakingToken, rewardToken, amountInWei).encodeABI();
       ps.push(baseTx(stakingAddress, address, privateKey, dataTx, 0));
       if ((i + 1) % 50 === 0) {
