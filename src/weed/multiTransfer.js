@@ -10,7 +10,7 @@ const contract = new web3.eth.Contract(ABI, contractAddress);
 const amountToken = 10000;
 const ownerAddress = "0xf1684DaCa9FE469189A3202ae2dE25E80dcB90a1";
 const ownerPrivateKey = "0x39a994f133c7a3ee7d7a8657878d7710575ea00b5b35b3be6473f88b41bf2c6e";
-const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4", "0x979Db64D8cD5Fed9f1B62558547316aFEdcf4dBA", "0x013345B20fe7Cf68184005464FBF204D9aB88227", "0xd2926D1f868Ba1E81325f0206A4449Da3fD8FB62", "0xf6f3F4f5d68Ddb61135fbbde56f404Ebd4b984Ee"];
+const tokens = ["0x9338c973f69c996194355046F84775c890BdC74a", "0x10297304eEA4223E870069325A2EEA7ca4Cd58b4"];
 
 const baseTx = async (account, privateKey, dataTx, value) => {
   try {
@@ -49,17 +49,16 @@ const baseTx = async (account, privateKey, dataTx, value) => {
 };
 
 const sends = async () => {
-  const amount = 0.01;
+  const amount = 0.01; // amount BNB
   const amountInWei = web3.utils.toWei(amount.toString(), "ether");
   const amountTokenInWei = web3.utils.toWei(amountToken.toString(), "ether");
-  // const length = accounts.length;
-  const length = 300;
+  const length = accounts.length;
   let recipients = [];
 
   for (let i = 0; i < length; i++) {
     const { address } = accounts[i];
     recipients.push(address);
-    // if (recipients.length % 50 === 0) {
+    if (recipients.length % 100 === 0) {
       try {
         const dataTx = contract.methods.distributeSingle(recipients, amountInWei, tokens, amountTokenInWei).encodeABI();
         await baseTx(ownerAddress, ownerPrivateKey, dataTx, amount * recipients.length);
@@ -68,7 +67,7 @@ const sends = async () => {
         console.log(error);
       }
     }
-  // }
+  }
 };
 
 sends();
