@@ -10,12 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.26.1",
     "csvtojson": "^2.0.10",
     "dotenv": "^10.0.0",
     "ethereumjs-wallet": "^1.0.2",
     "ethers": "^5.5.3",
     "jsbi": "^4.1.0",
     "moment": "^2.29.1",
+    "request": "^2.88.2",
     "web3": "^1.6.1"
   }
 }
