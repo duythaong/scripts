@@ -84,6 +84,9 @@ const uploadData = async ({ seriesId, buyer, tickets, paymentBy, totalAmount, ti
 };
 
 const buy = async (account, privateKey, seriesId, cart, paymentBy, totalAmount, cryptoRate) => {
+  const amountEther = Number(web3.utils.fromWei(totalAmount, 'ether'));
+  const cryptoRateEther = Number(web3.utils.fromWei(cryptoRate, 'ether'));
+
   try {
     const timestamp = Date.now();
     const assetIndex = symbols.indexOf(paymentBy);
@@ -97,7 +100,7 @@ const buy = async (account, privateKey, seriesId, cart, paymentBy, totalAmount, 
     });
 
     // Save data on IPFS
-    const ipfsHash = await uploadData({ seriesId, buyer: account, tickets, paymentBy, totalAmount, timestamp });
+    const ipfsHash = await uploadData({ seriesId, buyer: account, tickets, paymentBy, totalAmount: amountEther, timestamp });
 
     if (ipfsHash) {
       const postObject = {
@@ -107,8 +110,8 @@ const buy = async (account, privateKey, seriesId, cart, paymentBy, totalAmount, 
         ipfsHash,
         tickets,
         paymentBy,
-        cryptoRate,
-        totalAmount,
+        cryptoRate: cryptoRateEther,
+        totalAmount: amountEther,
       };
 
       return axios.post(`${apiUrl}/nft`, postObject, { headers: { Authorization: `${signature}|${account}` } }).then((rs) => {
@@ -156,6 +159,7 @@ const buys = async (from, length, seriesId, cart, paymentBy) => {
     const { price } = await lotteryContract.methods.series(seriesId).call();
     const totalAmount = await lotteryContract.methods.asset2USD(paymentBy, price).call();
     const cryptoRate = await lotteryContract.methods.asset2USD(paymentBy).call();
+
     let ps = [];
 
     for (let i = from; i < length; i++) {
@@ -172,4 +176,4 @@ const buys = async (from, length, seriesId, cart, paymentBy) => {
 }
 
 // approves();
-buys(0, 1000, '1652758022', ["0123"], 'BUSD');
+buys(0, 1000, '1652758022', ["0123"], 'ETH');
