@@ -5,7 +5,7 @@ const Web3 = require("web3");
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_BSC));
 
 const lotteryABI = require("../ABI/Lottery.json");
-const lotteryAddress = "0x4Aee3e0cd5f62fc2a23283fFB0874fCEe26c6a3e";
+const lotteryAddress = "0xe29005506840cB4707FA3c761C403A37335E7b4E";
 const lotteryContract = new web3.eth.Contract(lotteryABI, lotteryAddress);
 
 const tokenABI = require("../ABI/ERC20.json");
@@ -17,6 +17,9 @@ const messageHash = "Crypto Ishtar";
 const accounts = require("../../accounts.json");
 // const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4", "0x979Db64D8cD5Fed9f1B62558547316aFEdcf4dBA", "0x013345B20fe7Cf68184005464FBF204D9aB88227", "0xd2926D1f868Ba1E81325f0206A4449Da3fD8FB62", "0xf6f3F4f5d68Ddb61135fbbde56f404Ebd4b984Ee"];
 const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4"];
+
+const symbols = ["BNB" ,"BUSD" ,"BTCB" ,"USDT" ,"ETH" ,"USDC" ,"XRP"];
+
 
 const baseTx = async (contract, account, privateKey, dataTx, value) => {
   try {
@@ -55,35 +58,6 @@ const baseTx = async (contract, account, privateKey, dataTx, value) => {
   }
 };
 
-//1. Approve for lottery use tokens
-const approves = async () => {
-  const length = 50;
-  let ps = [];
-  for (let i = 0; i < tokens.length; i++) {
-    try {
-      for (let j = 0; j < length; j++) {
-        const { address, privateKey } = accounts[j];
-        const tokenContract = new web3.eth.Contract(tokenABI, tokens[i]);
-        const dataTx = tokenContract.methods.approve(lotteryAddress, MaxUint256).encodeABI();
-        ps.push(baseTx(tokens[i], address, privateKey, dataTx, 0));
-        if ((j + 1) % 50 === 0) {
-          await Promise.all(ps);
-          ps = [];
-        }
-      }
-    } catch (error) {
-      console.log("error");
-    }
-  }
-};
-
-// save data on IPFS
-// call contract
-// post API
-// update API after success
-
-const cart = ["0123"];
-
 const uploadData = async ({seriesId, buyer, tickets, paymentBy, totalAmount, timestamp}) => {
 	return new Promise(resolve => {
 			const r = request.post({uri: IPFS_UPLOAD_URL}, function (
@@ -108,13 +82,12 @@ const uploadData = async ({seriesId, buyer, tickets, paymentBy, totalAmount, tim
 			}));
 	})
 };
-	
-// 2.2 calling contract
-const buy = async (account, privateKey, seriesId, _assetIndex, totalTicket) => {
+
+const buy = async (account, privateKey, seriesId, cart, paymentBy, totalAmount, cryptoRate) => {
   try {
 		const timestamp = Date.now();
-		const signature = await web3.eth.accounts.sign(messageHash, privateKey);
-
+    const assetIndex = symbols.indexOf(paymentBy);
+		const { signature } = await web3.eth.accounts.sign(messageHash, privateKey);
 		const tickets = cart.map((num, index) => {
 			return {
       	numbers: num,
@@ -122,15 +95,11 @@ const buy = async (account, privateKey, seriesId, _assetIndex, totalTicket) => {
       	status: "TICKET_SELLING",
     	};
   	});
-
-		const paymentBy = "BUSD";
-		const totalAmount = 120;
-
-
+    
+    // Save data on IPFS
 		const ipfsHash = await uploadData({seriesId, buyer: account, tickets, paymentBy, totalAmount, timestamp});
-		console.log('ipfsHash', ipfsHash);
+
 		if (ipfsHash) {
-			console.log('in here');
 			const postObject = {
 				series: seriesId,
 				buyer: account,
@@ -138,56 +107,69 @@ const buy = async (account, privateKey, seriesId, _assetIndex, totalTicket) => {
 				ipfsHash,
 				tickets,
 				paymentBy,
+        cryptoRate,
 				totalAmount,
 			};
-
-			await axios.post(
-				`${apiUrl}/nft`,
-				postObject,
-				{
-					headers: {
-						Authorization: `${signature}|${user}`
-					}
-				}
-			).then((rs) => {
-				console.log('rspost', rs)
-			}).catch(err => {
-				console.log(444, err)
+      
+			return axios.post(`${apiUrl}/nft`, postObject, { headers: { Authorization: `${signature}|${account}` } }).then((rs) => {
+				console.log('Before sending txs: ', seriesId, ipfsHash, assetIndex, cart)
+        const dataTx = lotteryContract.methods.buy(seriesId, ipfsHash, assetIndex, cart.length).encodeABI();
+        return baseTx(lotteryAddress, account, privateKey, dataTx, 0).catch((err) => { console.log(222, account, err); });
+			}).catch(error => {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.log(error.response.data);
+          console.log(error.response.status);
+        }
 			});
 		};
 		
-		console.log('abc', seriesId, ipfsHash, _assetIndex, totalTicket)
-		const dataTx = lotteryContract.methods.buy(seriesId, ipfsHash, _assetIndex, totalTicket).encodeABI();
-	
-    baseTx(lotteryAddress, account, privateKey, dataTx, 0);
-    return baseTx(lotteryAddress, account, privateKey, dataTx, 0)
-      .then((transactionHash) => {
-        return axios
-          .put(`${apiUrl}/nft`, {
-            seri: seri,
-            buyer: account,
-            timestamp,
-            txHash: transactionHash,
-            isTxCompleted: true,
-          },
-					{
-						headers: {
-							Authorization: `${signature}|${user}`
-						}
-					})
-          .catch((err) => {
-            console.log(111, account, err);
-          });
-      })
-      .catch((err) => {
-        console.log(222, account, err);
-      });
   } catch (error) {
-    console.log("estimate gas error");
+    console.log("Estimate gas error", error);
   }
 };
 
-// run scripts
+const approves = async () => {
+  const length = accounts.length;
+  let ps = [];
+  for (let i = 0; i < tokens.length; i++) {
+    try {
+      for (let j = 0; j < length; j++) {
+        const { address, privateKey } = accounts[j];
+        const tokenContract = new web3.eth.Contract(tokenABI, tokens[i]);
+        const dataTx = tokenContract.methods.approve(lotteryAddress, MaxUint256).encodeABI();
+        ps.push(baseTx(tokens[i], address, privateKey, dataTx, 0));
+        if ((j + 1) % 50 === 0) {
+          await Promise.all(ps);
+          ps = [];
+        }
+      }
+    } catch (error) {
+      console.log("error");
+    }
+  }
+};
+
+const buys = async (from, length, seriesId, cart, paymentBy) => {
+  try {
+    const { price } = await lotteryContract.methods.series(seriesId).call();
+    const totalAmount = await lotteryContract.methods.asset2USD(paymentBy, price).call();
+    const cryptoRate = await lotteryContract.methods.asset2USD(paymentBy).call();
+    let ps = [];
+
+    for (let i = from; i < length; i++) {
+      const { address, privateKey } = accounts[i];
+      ps.push(buy(address, privateKey, seriesId, cart, paymentBy, totalAmount, cryptoRate));
+      if ((i + 1) % 50 === 0) {
+        await Promise.all(ps);
+        ps = [];
+      };
+    }
+  } catch (error) {
+    console.log('buy-error', error);
+  }
+}
 
 // approves();
-buy(accounts[0].address, accounts[0].privateKey, '1650435992053', 1, 1);
+buys(0, 1000, '1652758022', ["0123"], 'BUSD');
