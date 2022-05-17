@@ -3,13 +3,14 @@ const Web3 = require("web3");
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_BSC));
 const accounts = require("../../accounts1.json");
 const ABI = require("../ABI/MultiTransfer.json");
+const { sleep, minutes } = require('../utils');
 
 const contractAddress = '0x5d25718626097aC25Aef0e90736057FDd45e355D';
 const contract = new web3.eth.Contract(ABI, contractAddress);
 
 const amountToken = 10000;
-const ownerAddress = "0xf1684DaCa9FE469189A3202ae2dE25E80dcB90a1";
-const ownerPrivateKey = "0x39a994f133c7a3ee7d7a8657878d7710575ea00b5b35b3be6473f88b41bf2c6e";
+const ownerAddress = "0x57EF6F871888e2d294470A0061292675F6dC309c";
+const ownerPrivateKey = "0x9b43c28cfb2288a11d1c5ceb478ca06a34caefd42c911a8aa7ab1ceafbcc4e7e";
 const tokens = ["0x9338c973f69c996194355046F84775c890BdC74a", "0x10297304eEA4223E870069325A2EEA7ca4Cd58b4"];
 
 const baseTx = async (account, privateKey, dataTx, value) => {
@@ -55,10 +56,10 @@ const sends = async () => {
   const length = accounts.length;
   let recipients = [];
 
-  for (let i = 0; i < length; i++) {
+  for (let i = 100; i < length; i++) {
     const { address } = accounts[i];
     recipients.push(address);
-    if (recipients.length % 100 === 0) {
+    if ((i + 1) % 100 === 0) {
       try {
         const dataTx = contract.methods.distributeSingle(recipients, amountInWei, tokens, amountTokenInWei).encodeABI();
         await baseTx(ownerAddress, ownerPrivateKey, dataTx, amount * recipients.length);
@@ -68,7 +69,8 @@ const sends = async () => {
       }
     }
   }
+  await sleep(minutes(60)); // 1 hours
+
 };
 
 sends();
-
