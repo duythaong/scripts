@@ -18,7 +18,7 @@ const accounts = require("../../accounts.json");
 // const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4", "0x979Db64D8cD5Fed9f1B62558547316aFEdcf4dBA", "0x013345B20fe7Cf68184005464FBF204D9aB88227", "0xd2926D1f868Ba1E81325f0206A4449Da3fD8FB62", "0xf6f3F4f5d68Ddb61135fbbde56f404Ebd4b984Ee"];
 const tokens = ["0x10297304eEA4223E870069325A2EEA7ca4Cd58b4"];
 
-const symbols = ["BNB" ,"BUSD" ,"BTCB" ,"USDT" ,"ETH" ,"USDC" ,"XRP"];
+const symbols = ["BNB", "BUSD", "BTCB", "USDT", "ETH", "USDC", "XRP"];
 
 
 const baseTx = async (contract, account, privateKey, dataTx, value) => {
@@ -58,73 +58,73 @@ const baseTx = async (contract, account, privateKey, dataTx, value) => {
   }
 };
 
-const uploadData = async ({seriesId, buyer, tickets, paymentBy, totalAmount, timestamp}) => {
-	return new Promise(resolve => {
-			const r = request.post({uri: IPFS_UPLOAD_URL}, function (
-					err,
-					httpResponse,
-					body
-			) {
-					const res = JSON.parse(body)
-					console.log(`https://dev-ipfsgw.w3w.app/ipfs/${res.Hash}`);
-					return resolve(res.Hash);
-			});
+const uploadData = async ({ seriesId, buyer, tickets, paymentBy, totalAmount, timestamp }) => {
+  return new Promise(resolve => {
+    const r = request.post({ uri: IPFS_UPLOAD_URL }, function (
+      err,
+      httpResponse,
+      body
+    ) {
+      const res = JSON.parse(body)
+      console.log(`https://dev-ipfsgw.w3w.app/ipfs/${res.Hash}`);
+      return resolve(res.Hash);
+    });
 
-			// eslint-disable-next-line no-undef
-			const form = r.form();
-			form.append("file", JSON.stringify({
-					seriesId,
-					buyer,
-					tickets,
-					paymentBy,
-					totalAmount,
-					timestamp,
-			}));
-	})
+    // eslint-disable-next-line no-undef
+    const form = r.form();
+    form.append("file", JSON.stringify({
+      seriesId,
+      buyer,
+      tickets,
+      paymentBy,
+      totalAmount,
+      timestamp,
+    }));
+  })
 };
 
 const buy = async (account, privateKey, seriesId, cart, paymentBy, totalAmount, cryptoRate) => {
   try {
-		const timestamp = Date.now();
+    const timestamp = Date.now();
     const assetIndex = symbols.indexOf(paymentBy);
-		const { signature } = await web3.eth.accounts.sign(messageHash, privateKey);
-		const tickets = cart.map((num, index) => {
-			return {
-      	numbers: num,
-      	ticketId: parseInt(timestamp) + index + 1,
-      	status: "TICKET_SELLING",
-    	};
-  	});
-    
-    // Save data on IPFS
-		const ipfsHash = await uploadData({seriesId, buyer: account, tickets, paymentBy, totalAmount, timestamp});
+    const { signature } = await web3.eth.accounts.sign(messageHash, privateKey);
+    const tickets = cart.map((num, index) => {
+      return {
+        numbers: num,
+        ticketId: parseInt(timestamp) + index + 1,
+        status: "TICKET_SELLING",
+      };
+    });
 
-		if (ipfsHash) {
-			const postObject = {
-				series: seriesId,
-				buyer: account,
-				timestamp,
-				ipfsHash,
-				tickets,
-				paymentBy,
+    // Save data on IPFS
+    const ipfsHash = await uploadData({ seriesId, buyer: account, tickets, paymentBy, totalAmount, timestamp });
+
+    if (ipfsHash) {
+      const postObject = {
+        series: seriesId,
+        buyer: account,
+        timestamp,
+        ipfsHash,
+        tickets,
+        paymentBy,
         cryptoRate,
-				totalAmount,
-			};
-      
-			return axios.post(`${apiUrl}/nft`, postObject, { headers: { Authorization: `${signature}|${account}` } }).then((rs) => {
-				console.log('Before sending txs: ', seriesId, ipfsHash, assetIndex, cart)
+        totalAmount,
+      };
+
+      return axios.post(`${apiUrl}/nft`, postObject, { headers: { Authorization: `${signature}|${account}` } }).then((rs) => {
+        console.log('Before sending txs: ', seriesId, ipfsHash, assetIndex, cart)
         const dataTx = lotteryContract.methods.buy(seriesId, ipfsHash, assetIndex, cart.length).encodeABI();
         return baseTx(lotteryAddress, account, privateKey, dataTx, 0).catch((err) => { console.log(222, account, err); });
-			}).catch(error => {
+      }).catch(error => {
         if (error.response) {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
           console.log(error.response.data);
           console.log(error.response.status);
         }
-			});
-		};
-		
+      });
+    };
+
   } catch (error) {
     console.log("Estimate gas error", error);
   }
